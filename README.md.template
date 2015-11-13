@@ -1,0 +1,13 @@
+# CoreOS in Docker
+
+`docker run --privileged --rm --tty --interactive %IMAGE%`
+
+## Notes
+
+Provide `/var/lib/coreos-install/user_data`, `/usr/share/oem/cloud-config.yml`, and `/usr/share/oem/bin/setup-environment` to configure the container accordingly.
+
+Follow guides at https://coreos.com.
+
+## Bugs
+
+- `--privileged` is needed for docker-in-docker and systemd
