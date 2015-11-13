@@ -1,0 +1,3 @@
+[submodule "coreos"]
+	path = coreos
+	url = https://github.com/steigr/coreos.git
