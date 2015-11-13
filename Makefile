@@ -46,7 +46,7 @@ coreos/checkout:
 	cd coreos; \
 	git pull; \
 	git checkout coreos/$(RELEASE) || true
-	rm coreos/coreos-*.tar.xz || true
+	find coreos -name "coreos-*.tar.xz" -exec git rm '{}' ';'
 
 coreos/commit:
 	cd coreos; \
