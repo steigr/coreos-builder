@@ -64,7 +64,7 @@ coreos/%:
 	$(MAKE) coreos/commit RELEASE="$(RELEASE)"
 
 releases: jq
-	$(eval RELEASES := $(shell curl -sL https://coreos.com/releases/releases.json | jq -r 'to_entries|.[].key') )
+	$(eval RELEASES := $(shell curl -sL https://coreos.com/releases/releases.json | jq -r 'to_entries|.[].key' | sort) )
 	for release in $(RELEASES); do \
 		$(MAKE) coreos/$$release BID=$(BID) IMAGE=$(IMAGE); \
 	done
