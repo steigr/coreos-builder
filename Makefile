@@ -34,10 +34,10 @@ coreos/README.md:
 coreos/Dockerfile:
 	echo 'from scratch' > $@
 	echo 'maintainer $(MAINTAINER)' >> $@
-	echo 'add coreos-$(RELEASE).tar.xz /'>> $@
 	echo 'entrypoint ["/usr/lib64/systemd/systemd"]'>> $@
 	echo 'env container=docker'>> $@
 	echo 'volume ["/usr/share/oem","/home","/var","/etc","/root","/home","/opt","/media","/mnt"]' >> $@
+	echo 'add coreos-$(RELEASE).tar.xz /'>> $@
 	( cd coreos && git add Dockerfile )
 
 coreos/checkout:
