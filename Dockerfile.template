@@ -1,0 +1,6 @@
+from scratch
+maintainer %MAINTAINER%
+entrypoint ["/usr/lib64/systemd/systemd"]
+env container=docker
+volume ["/usr/share/oem","/home","/var","/etc","/root","/home","/opt","/media","/mnt"]
+add coreos-%RELEASE%.tar.xz /
