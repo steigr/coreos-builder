@@ -19,20 +19,17 @@ jq:
 
 coreos/coreos-%.tar.xz: builder
 	$(eval release = $(subst .tar.xz,,$(subst coreos/coreos-,,$@)))
-	test -s "$@" || docker run \
-		--rm \
-		--tty \
-		--interactive \
+	( cd coreos && find . -name "coreos-*.tar.xz" -not -name "coreos-$(release).tar.xz" -exec git rm '{}' ';' )
+	test -s "$@" || docker run --rm --tty \
 		--volume "$(PWD)/coreos":/target \
-		--env TARGET=/target \
-		--env TRACE=1 \
-		$(BID) \
-		$(release)
+		--env TARGET=/target --env TRACE=$(TRACE) \
+		$(BID) $(release)
+	( cd  "$$(dirname $@)" && git add "$$(basename "$@")")
 
 coreos/README.md:
 	cat README.md.template \
-	| sed -e 's@%IMAGE%@$(IMAGE)@g' \
-	> $@
+	| sed -e 's@%IMAGE%@$(IMAGE)@g' > $@
+	( cd coreos && git add README.md )
 
 coreos/Dockerfile:
 	echo 'from scratch' > $@
@@ -41,33 +38,33 @@ coreos/Dockerfile:
 	echo 'entrypoint ["/usr/lib64/systemd/systemd"]'>> $@
 	echo 'env container=docker'>> $@
 	echo 'volume ["/usr/share/oem","/home","/var","/etc","/root","/home","/opt","/media","/mnt"]' >> $@
+	( cd coreos && git add Dockerfile )
 
 coreos/checkout:
-	cd coreos; \
-	git pull; \
-	git checkout coreos/$(RELEASE) || true
-	find coreos -name "coreos-*.tar.xz" -exec git rm '{}' ';'
+	cd coreos && git reset --hard
+	cd coreos && git checkout master
+	cd coreos && git pull
+	cd coreos && git tag | grep coreos/$(RELEASE) \
+	&& git checkout coreos/$(RELEASE) \
+	|| echo "New CoreOS Release $(RELEASE)"
 
 coreos/commit:
-	cd coreos; \
-	git add Dockerfile coreos-*.tar.* README.md; \
-	git commit -m "CoreOS in Docker $(RELEASE)"; \
-	git tag -d coreos/$(RELEASE) || true; \
-	git tag -d $(RELEASE) || true; \
-	git tag coreos/$(RELEASE) master; \
-	git tag $(RELEASE) master
-
+	cd coreos && git commit -m "CoreOS in Docker $(RELEASE)"
+	cd coreos && git tag -d coreos/$(RELEASE) || true
+	cd coreos && git tag -d $(RELEASE) || true
+	cd coreos && git tag coreos/$(RELEASE)
+	cd coreos && git tag $(RELEASE)
 
 coreos/%:
 	$(eval RELEASE := $(subst coreos/,,$@))
 	$(MAKE) coreos/checkout RELEASE="$(RELEASE)"
 	$(MAKE) coreos/README.md IMAGE="$(IMAGE)/$(RELEASE)"
 	$(MAKE) coreos/Dockerfile MAINTAINER="$(MAINTAINER)" RELEASE="$(RELEASE)"
-	$(MAKE) coreos/coreos-$(RELEASE).tar.xz
+	$(MAKE) coreos/coreos-$(RELEASE).tar.xz TRACE=$(TRACE)
 	$(MAKE) coreos/commit RELEASE="$(RELEASE)"
 
 releases: jq
-	$(eval RELEASES := $(shell curl -sL https://coreos.com/releases/releases.json | jq -r 'to_entries|.[].key' | sort -r) )
+	$(eval RELEASES := $(shell curl -sL https://coreos.com/releases/releases.json | jq -r 'to_entries|.[].key' | sort) )
 	for release in $(RELEASES); do \
 		$(MAKE) coreos/$$release BID=$(BID) IMAGE=$(IMAGE); \
 	done

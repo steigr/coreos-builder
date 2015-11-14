@@ -9,7 +9,7 @@ vars() {
   export CHANNELS="stable beta alpha"
   export BOARD="amd64-usr"
   export SRC_FILE="coreos_production_pxe_image.cpio.gz"
-  export COMPRESS_MEMLIMIT="${COMPRESS_MEMLIMIT:-70}"
+  export COMPRESS_MEMLIMIT="${COMPRESS_MEMLIMIT:-90}"
   export COMPRESS_MEMLIMIT="$(percent_of_free_memory "$COMPRESS_MEMLIMIT" )KiB"
   export COMPRESS="xz"
   export COMPRESS_ARGS="-c -f -T0 -e -M $COMPRESS_MEMLIMIT -9"
@@ -18,7 +18,7 @@ vars() {
 percent_of_free_memory() {
   local percent="$1"
   MEM_MAX="$(cat /proc/meminfo \
-  | grep ^MemFree \
+  | grep ^MemAvailable \
   | awk -F: '{print $2}' \
   | awk '{print $1}' )"
   printf "$((( $((( $MEM_MAX * $percent ))) / 100 )))"
@@ -54,6 +54,8 @@ link() {
   local base_dir="$1"
   local dest="$2"
   local source="$3"
+  [[ -e "$base_dir/$dest" ]] \
+  && return 0
   [[ -d "$(dirname "$base_dir/$dest")" ]] \
   || mkdir -p "$(dirname "$base_dir/$dest")"
   ln -s "$source" "$base_dir/$dest"
@@ -62,6 +64,8 @@ link() {
 enable_login_getty() {
   local base_dir="$1"
   local tty="$2"
+  [[ -f "$base_dir/usr/lib64/systemd/system-generators/coreos-autologin-generator" ]] \
+  || return 0
   echo "overlay_unit \"getty@${tty}.service\"" \
   >> "$base_dir/usr/lib64/systemd/system-generators/coreos-autologin-generator"
 }
@@ -117,6 +121,7 @@ EO_PARTIAL
   disable_unit "$temp" "systemd-udevd.service"
   disable_unit "$temp" "systemd-udev-trigger.service"
   disable_unit "$temp" "systemd-udev-settle.service"
+  disable_unit "$temp" "proc-sys-fs-binfmt_misc.automount"
 }
 
 compress() {
@@ -140,6 +145,8 @@ main() {
     unsquashfs -dest "$target" "$squashfs"
     rm "$squashfs"
   done
+  [[ -d "$temp/newroot" ]] \
+  && temp="$temp/newroot"
   prepare "$temp"
   compress "$temp" "$TARGET/coreos-${version}"
 }
