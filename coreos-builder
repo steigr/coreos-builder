@@ -163,7 +163,7 @@ prepare_repository() {
 	git init "coreos"
 	echo '*.tar.xz filter=lfs diff=lfs merge=lfs -text' > coreos/.gitattributes
 	echo '.git' > coreos/.dockerignore
-	( cd coreos; git add -A; git commit -m "Initial commit" )
+	( cd coreos; git lfs init; git add -A; git commit -m "Initial commit" )
 }
 
 has_tag() {
