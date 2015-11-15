@@ -14,4 +14,4 @@ Follow guides at https://coreos.com.
 
 ## Build Status
 
-[![Circle CI](https://circleci.com/gh/steigr/coreos/tree/master.svg?style=shield&circle-token=81eaea95884c383681fc107d95893c4cb409aa1a)](https://circleci.com/gh/steigr/coreos/tree/master)
+[![Circle CI](https://circleci.com/gh/steigr/coreos/tree/%CHANNEL%.svg?style=shield&circle-token=81eaea95884c383681fc107d95893c4cb409aa1a)](https://circleci.com/gh/steigr/coreos/tree/%CHANNEL%)

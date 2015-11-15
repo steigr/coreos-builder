@@ -16,6 +16,7 @@ deployment:
   hub:
     branch: master
     commands:
+      - git log 
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
       - docker push "%IMAGE%"
       - docker logout
