@@ -116,12 +116,14 @@ restore_image() {
 
 build_circle_yaml() {
 	local image="$1"
+	local channel="$2"
+	local release="$3"
 	local image_name="${image%%:*}"
-	local release="${image##*:}"
 	sed \
 		-e "s@%IMAGE%@$image@g" \
 		-e "s@%IMAGE_NAME%@$image_name@g" \
 		-e "s@%RELEASE%@$release@g" \
+		-e "s@%CHANNEL%@$channel@g" \
 	> coreos/circle.yml
 }
 
@@ -144,7 +146,7 @@ tag_image() {
 commit_release() {
 	local release="$1"
 	ls -A | xargs git add
-	git commit -m "CoreOS in Docker, Release"
+	git commit -m "CoreOS in Docker, Release $release"
 }
 
 build_image() {
@@ -192,7 +194,7 @@ main() {
 		fi
 		cat README.md.template  | build_readme "$image" "$channel"
 		cat Dockerfile.template | build_dockerfile "$release"
-		cat circle.yml.template | build_circle_yaml "$image"
+		cat circle.yml.template | build_circle_yaml "$image" "$channel" "$release"
 		[[ -s "temp/coreos-$release.tar.xz" ]] \
 		&& restore_image "$release" \
 		|| build_image "$release"
