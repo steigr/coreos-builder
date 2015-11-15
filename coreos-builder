@@ -153,6 +153,7 @@ build_image() {
 	local release="$1"
 	build_builder "$BUILDER_ID"
 	docker run --rm --tty \
+	  --cpu-quota "-1" \
 		--volume "$PWD/coreos":/target \
 		--env TARGET=/target --env TRACE=$TRACE \
 		"$BUILDER_ID" "$release"
