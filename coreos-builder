@@ -200,7 +200,7 @@ main() {
 		&& restore_image "$release" \
 		|| build_image "$release"
 		( cd coreos; commit_release "$release"; tag_image "$release" "$tags" )
-		[[ "$PUSH" ]] && ( cd coreos; git push --all --force origin )
+		[[ "$PUSH" ]] && ( cd coreos; git push --all --force origin; git push --tags --force origin )
 	done
 	docker inspect "$BUILDER_ID" >/dev/null 2>/dev/null \
 	&& docker rmi -f "$BUILDER_ID"
