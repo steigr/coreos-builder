@@ -11,13 +11,13 @@ dependencies:
     - docker build --tag "%IMAGE%" .
 test:
   override:
-    - docker images | grep -e "%IMAGE%\s"
+    - docker images | grep -e "%IMAGE_NAME%" -e "%RELEASE%"
 deployment:
   hub:
     branch: master
     commands:
-      - git log 
+      - git log -n1 --format='%H' | xargs git describe --tags | grep -E "^docker/" | sed -e 's@^docker/@@g' | xargs -n1 -I{} docker tag "%IMAGE%" "%IMAGE_NAME%:{}" 
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-      - docker push "%IMAGE%"
+      - docker push "%IMAGE_NAME%"
       - docker logout
-      - docker rmi -f "%IMAGE%" 
+      - docker rmi -f "%IMAGE_NAME%" 

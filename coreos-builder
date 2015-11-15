@@ -25,15 +25,6 @@ EO_BUILDER
 	rm -r "$Dockerdir"
 }
 
-jq() {
-	if [[ ! -x "$(which jq)" ]]; then
-		curl -sLo jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-osx-amd64
-		chmod +x jq
-		export PATH="$PATH:$PWD"
-	fi
-	$(which jq) $@
-}
-
 http_file_exists() {
 	local url="$1"
 	curl -sLIfo /dev/null "$url"
@@ -124,9 +115,13 @@ restore_image() {
 }
 
 build_circle_yaml() {
-	local release="$image"
+	local image="$1"
+	local image_name="${image%%:*}"
+	local release="${image##*:}"
 	sed \
 		-e "s@%IMAGE%@$image@g" \
+		-e "s@%IMAGE_NAME%@$image_name@g" \
+		-e "s@%RELEASE%@$release@g" \
 	> coreos/circle.yml
 }
 
@@ -148,7 +143,7 @@ tag_image() {
 
 commit_release() {
 	local release="$1"
-	ls -a | xargs git add
+	ls -A | xargs git add
 	git commit -m "CoreOS in Docker, Release"
 }
 
@@ -202,6 +197,7 @@ main() {
 		&& restore_image "$release" \
 		|| build_image "$release"
 		( cd coreos; commit_release "$release"; tag_image "$release" "$tags" )
+		[[ "$PUSH" ]] && ( cd coreos; git push --all --force origin )
 	done
 	docker inspect "$BUILDER_ID" >/dev/null 2>/dev/null \
 	&& docker rmi -f "$BUILDER_ID"
